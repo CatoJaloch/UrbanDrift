@@ -1,0 +1,83 @@
+
+  <div id="sidebar-placeholder"></div>
+
+  <div class="content">
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offer a Ride</title>
+  <link rel="stylesheet" href="/css/offerride.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="ride-container">
+    <h2>Manage Your Rides</h2>
+    <div class="tab">
+      <button class="tab-btn active">Offer Ride</button>
+    </div>
+
+    <form class="ride-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label><i class="fas fa-map-marker-alt"></i> Origin</label>
+          <input type="text" placeholder="e.g., Downtown, City A" required />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-location-dot"></i> Destination</label>
+          <input type="text" placeholder="e.g., University Campus, City B" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label><i class="fas fa-calendar-alt"></i> Date of Departure</label>
+          <input type="date" required />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-clock"></i> Time of Departure</label>
+          <input type="time" required />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label><i class="fas fa-clock"></i> Return Time (Optional)</label>
+          <input type="time" />
+        </div>
+        <div class="form-group">
+          <label><i class="fas fa-users"></i> Number of Seats</label>
+          <select>
+            <option>1 Seat</option>
+            <option>2 Seats</option>
+            <option>3 Seats</option>
+            <option>4 Seats</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full">
+          <label><i class="fas fa-comment-alt"></i> Comments</label>
+          <textarea placeholder="Any special instructions or preferences?"></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">Save Ride Offer</button>
+    </form>
+  </div>
+</body>
+</html>
+<body>
+    
+  </div>
+
+  <script>
+    fetch("sidebar.html")
+      .then(res => res.text())
+      .then(data => {
+        document.getElementById("sidebar-placeholder").innerHTML = data;
+      });
+  </script>
+</body>
