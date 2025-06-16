@@ -1,0 +1,50 @@
+<aside class="sidebar">
+  <nav>
+    <ul>
+      <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
+      <li><a href="../includes/offerride.php"><i class="fas fa-car-side"></i> Offer Ride</a></li>
+      <li><a href="../includes/myrides.php"><i class="fas fa-route"></i> My Rides</a></li>
+      <li><a href="../includes/signup.php"><i class="fas fa-user-plus"></i> Signup</a></li>
+      <li><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+      <li><a href="logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      
+    </ul>
+  </nav>
+</aside>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+.sidebar {
+  width: 200px;
+  height: 100vh;
+  background-color: #6366f1;
+  color: white;
+  padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar nav ul li {
+  margin: 20px 0;
+}
+
+.sidebar nav ul li a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar nav ul li a:hover {
+  text-decoration: underline;
+}
+</style>
+
+

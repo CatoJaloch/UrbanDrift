@@ -4,9 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login / Signup Flip Card</title>
-  <link rel="stylesheet" href="/css/signup.css" />
+  <link rel="stylesheet" href="../css/signup.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
+
+<?php
+include '../includes/db.php';
+include '../includes/sidebar.php'; 
+?>
+
+<div style="margin-left: 220px; padding: 40px;">
   <div class="container" id="container">
     <div class="form-container sign-up-container">
       <form action="#">
@@ -14,9 +22,8 @@
         <input type="text" placeholder="Name" />
         <input type="email" placeholder="Email" />
         <input type="password" placeholder="Password" />
-        <input type="gender" placeholder="Gender(M or F)">
-        <input type="number" placeholder="Age"> 
-
+        <input type="gender" placeholder="Gender (M or F)" />
+        <input type="number" placeholder="Age" />
         <button>Sign Up</button>
       </form>
     </div>
@@ -42,8 +49,10 @@
       </div>
     </div>
   </div>
-  <script >
-    const container = document.getElementById('container');
+</div>
+
+<script>
+const container = document.getElementById('container');
 const signUpButton = document.getElementById('signUp');
 const signInButton = document.getElementById('signIn');
 
@@ -54,7 +63,7 @@ signUpButton.addEventListener('click', () => {
 signInButton.addEventListener('click', () => {
   container.classList.remove("right-panel-active");
 });
+</script>
 
-  </script>
 </body>
 </html>
