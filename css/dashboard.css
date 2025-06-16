@@ -1,0 +1,94 @@
+/* Reset + base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: white;
+  padding-top: 70px; /* For fixed nav */
+}
+
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 2rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.logo {
+  font-size: 1.6rem;
+  color: purple;
+}
+
+.site-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: black;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: black;
+  font-size: 0.95rem;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: purple;
+}
+
+/* Main Content */
+.content {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 1.8rem;
+  color: purple;
+  margin-bottom: 2rem;
+}
+
+/* Containers */
+.container {
+  background-color: #f9f9f9;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.container p {
+  font-size: 1rem;
+  color: #333;
+}
+
+.container strong {
+  color: black;
+}
+
+.icon {
+  font-size: 1.8rem;
+  color: purple;
+}
