@@ -38,7 +38,7 @@ h2 {
 }
 
 .tab-btn.active {
-  background: #6366f1;
+  background: purple;
   color: white;
 }
 
@@ -80,7 +80,7 @@ textarea {
 
 .submit-btn {
   width: 100%;
-  background-color: #6366f1;
+  background-color: purple;
   color: white;
   border: none;
   padding: 14px;
@@ -91,5 +91,5 @@ textarea {
 }
 
 .submit-btn:hover {
-  background-color: #4f46e5;
+  background-color: purple;
 }

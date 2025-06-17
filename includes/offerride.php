@@ -1,4 +1,13 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+  header("Location: signup.php"); // redirect to login if not authenticated
+  exit;
+}
+$user_id = $_SESSION['user_id'];
+?>
+
+<?php
 include '../includes/db.php'; 
 $success = false;
 
@@ -11,11 +20,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $seats = $_POST['seats'] ?? 0;
   $comments = $_POST['comments'] ?? '';
 
-  $sql = "INSERT INTO ride_offers (origin, destination, departure_date, departure_time, return_time, seats, comments)
-          VALUES (?, ?, ?, ?, ?, ?, ?)";
+  $sql = "INSERT INTO ride_offers (user_id, origin, destination, departure_date, departure_time, return_time, seats, comments)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
 
   $stmt = $conn->prepare($sql);
-  $stmt->bind_param("sssssis", $origin, $destination, $departure_date, $departure_time, $return_time, $seats, $comments);
+$stmt->bind_param("isssssis", $user_id, $origin, $destination, $departure_date, $departure_time, $return_time, $seats, $comments);
 
   if ($stmt->execute()) {
     $success = true;
@@ -25,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $conn->close();
 }
 ?>
-
+<?php include '../includes/navbar.php'; ?>
 <?php include '../includes/sidebar.php'; ?>
 <!DOCTYPE html>
 <html lang="en">

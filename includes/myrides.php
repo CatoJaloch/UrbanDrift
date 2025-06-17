@@ -1,5 +1,15 @@
 <?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+  header("Location: signup.php"); // redirect to login if not authenticated
+  exit;
+}
+$user_id = $_SESSION['user_id'];
+?>
+
+<?php
 include '../includes/db.php';
+include '../includes/navbar.php';
 include '../includes/sidebar.php';
 ?>
 
@@ -28,28 +38,33 @@ include '../includes/sidebar.php';
       </thead>
       <tbody>
         <?php
-        $query = "SELECT * FROM ride_offers ORDER BY departure_date DESC";
-        $result = $conn->query($query);
-
-        if ($result->num_rows > 0):
-          while($row = $result->fetch_assoc()):
+        $user_id = $_SESSION['user_id'];
+$query = "SELECT * FROM ride_offers WHERE user_id = ? ORDER BY departure_date DESC";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
         ?>
-        <tr>
-          <td><?= htmlspecialchars($row['departure_date']) ?></td>
-          <td><?= htmlspecialchars($row['origin']) ?> → <?= htmlspecialchars($row['destination']) ?></td>
-          <td><?= htmlspecialchars($row['seats']) ?></td>
-          <td>
-            <?php if ($row['rating']): ?>
-               <?= number_format($row['rating'], 1) ?>
-            <?php else: ?>
-              —
-            <?php endif; ?>
-          </td>
-          <td><a href="ride-details.php?id=<?= $row['id'] ?>" class="view-link">View Details</a></td>
-        </tr>
-        <?php endwhile; else: ?>
-        <tr><td colspan="5">No rides found.</td></tr>
+       <?php if ($result && $result->num_rows > 0): ?>
+  <?php while ($row = $result->fetch_assoc()): ?>
+    <tr>
+      <td><?= htmlspecialchars($row['departure_date']) ?></td>
+      <td><?= htmlspecialchars($row['origin']) ?> → <?= htmlspecialchars($row['destination']) ?></td>
+      <td><?= htmlspecialchars($row['seats']) ?></td>
+      <td>
+        <?php if (!empty($row['rating'])): ?>
+          <?= number_format($row['rating'], 1) ?>
+        <?php else: ?>
+          —
         <?php endif; ?>
+      </td>
+      <td><a href="ride-details.php?id=<?= $row['id'] ?>" class="view-link">View Details</a></td>
+    </tr>
+  <?php endwhile; ?>
+<?php else: ?>
+  <tr><td colspan="5">No rides found.</td></tr>
+<?php endif; ?>
+
       </tbody>
     </table>
   </div>

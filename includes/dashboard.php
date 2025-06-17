@@ -1,3 +1,13 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_id'])) {
+  header("Location: signup.php"); // redirect to login if not authenticated
+  exit;
+}
+$user_id = $_SESSION['user_id'];
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +15,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UrbanDrift Dashboard</title>
   <link rel="stylesheet" href="../css/dashboard.css" />
-  
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
@@ -17,7 +27,7 @@
       <a href="dashboard.html" class="nav-link">Dashboard</a>
       <a href="./offerride.php" class="nav-link">Offer Ride</a>
       <a href="findride.html" class="nav-link">Find Ride</a>
-      <a href="#" class="nav-link">My Ride</a>
+      <a href="../includes/myrides.php" class="nav-link">My Ride</a>
     </div>
     <div class="nav-right">
       <a href="signup.html" class="nav-link"><i class="fas fa-user"></i> Login/Signup</a>

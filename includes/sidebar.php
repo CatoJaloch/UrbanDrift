@@ -7,7 +7,7 @@
       <li><a href="../includes/myrides.php"><i class="fas fa-route"></i> My Rides</a></li>
       <li><a href="../includes/signup.php"><i class="fas fa-user-plus"></i> Signup</a></li>
       <li><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
-      <li><a href="logout.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      <li><a href="../includes/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       
     </ul>
   </nav>
@@ -17,7 +17,7 @@
 .sidebar {
   width: 200px;
   height: 100vh;
-  background-color: #6366f1;
+  background-color:white;
   color: white;
   padding: 20px;
   position: fixed;
@@ -35,7 +35,7 @@
 }
 
 .sidebar nav ul li a {
-  color: white;
+  color: black;
   text-decoration: none;
   font-weight: 500;
   display: flex;

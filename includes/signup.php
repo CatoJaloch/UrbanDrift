@@ -1,41 +1,123 @@
+<?php
+session_start();
+include '../includes/db.php'; // Adjust path to your db.php
+
+$signup_success = false;
+$signup_error = '';
+$login_error = '';
+
+// Handle Sign Up
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
+  $name = trim($_POST['name']);
+  $email = trim($_POST['email']);
+  $gender = trim($_POST['gender']);
+  $age = intval($_POST['age']);
+  $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+  // Check if email already exists
+  $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $stmt->store_result();
+
+  if ($stmt->num_rows > 0) {
+    $signup_error = "Email is already registered.";
+  } else {
+    $stmt_insert = $conn->prepare("
+      INSERT INTO users (name, email, password, gender, age)
+      VALUES (?, ?, ?, ?, ?)"
+    );
+    $stmt_insert->bind_param("ssssi", $name, $email, $password, $gender, $age);
+    if ($stmt_insert->execute()) {
+      $signup_success = true;
+    } else {
+      $signup_error = "Signup failed. Please try again.";
+    }
+    $stmt_insert->close();
+  }
+
+  $stmt->close();
+}
+
+// Handle Login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
+  $email = trim($_POST['login_email']);
+  $password = $_POST['login_password'];
+
+  $stmt = $conn->prepare("SELECT id, name, password FROM users WHERE email = ?");
+  $stmt->bind_param("s", $email);
+  $stmt->execute();
+  $result = $stmt->get_result();
+
+  if ($result && $result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+    if (password_verify($password, $user['password'])) {
+      $_SESSION['user_id'] = $user['id'];
+      $_SESSION['user_name'] = $user['name'];
+      header("Location: dashboard.php");
+      exit;
+    } else {
+      $login_error = "Incorrect password.";
+    }
+  } else {
+    $login_error = "No account found with that email.";
+  }
+
+  $stmt->close();
+}
+
+$conn->close();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login / Signup Flip Card</title>
-  <link rel="stylesheet" href="../css/signup.css" />
+  <meta charset="utf-8">
+  <title>UrbanDrift Signup / Login</title>
+  <link rel="stylesheet" href="../css/signup.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
-<?php
-include '../includes/db.php';
-include '../includes/sidebar.php'; 
-?>
+<?php include '../includes/sidebar.php'; ?>
 
 <div style="margin-left: 220px; padding: 40px;">
   <div class="container" id="container">
+
+    <!-- Sign Up Form -->
     <div class="form-container sign-up-container">
-      <form action="#">
+      <form method="post" action="">
         <h1>Create Account</h1>
-        <input type="text" placeholder="Name" />
-        <input type="email" placeholder="Email" />
-        <input type="password" placeholder="Password" />
-        <input type="gender" placeholder="Gender (M or F)" />
-        <input type="number" placeholder="Age" />
-        <button>Sign Up</button>
+        <?php if ($signup_success): ?>
+          <p style="color:green;">✅ Account created! Please sign in below.</p>
+        <?php elseif ($signup_error): ?>
+          <p style="color:red;"><?php echo $signup_error; ?></p>
+        <?php endif; ?>
+
+        <input type="text" name="name" placeholder="Name" required />
+        <input type="email" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <input type="text" name="gender" placeholder="Gender (M/F)" />
+        <input type="number" name="age" placeholder="Age" />
+        <button type="submit" name="signup">Sign Up</button>
       </form>
     </div>
+
+    <!-- Login Form -->
     <div class="form-container sign-in-container">
-      <form action="#">
-        <h1>Welcome</h1>
-        <input type="email" placeholder="Email" />
-        <input type="password" placeholder="Password" />
-        <a href="#">Forgot password?</a>
-        <button>Sign In</button>
+      <form method="post" action="">
+        <h1>Sign In</h1>
+        <?php if ($login_error): ?>
+          <p style="color:red;"><?php echo $login_error; ?></p>
+        <?php endif; ?>
+
+        <input type="email" name="login_email" placeholder="Email" required />
+        <input type="password" name="login_password" placeholder="Password" required />
+        <button type="submit" name="login">Sign In</button>
       </form>
     </div>
+
+    <!-- Overlay panels (unchanged) -->
     <div class="overlay-container">
       <div class="overlay">
         <div class="overlay-panel overlay-left">
@@ -43,26 +125,19 @@ include '../includes/sidebar.php';
           <button class="ghost" id="signIn">Sign In</button>
         </div>
         <div class="overlay-panel overlay-right">
-          <h2>Don't have an account?</h2>
+          <h2>New here?</h2>
           <button class="ghost" id="signUp">Sign Up</button>
         </div>
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
-const container = document.getElementById('container');
-const signUpButton = document.getElementById('signUp');
-const signInButton = document.getElementById('signIn');
-
-signUpButton.addEventListener('click', () => {
-  container.classList.add("right-panel-active");
-});
-
-signInButton.addEventListener('click', () => {
-  container.classList.remove("right-panel-active");
-});
+  const container = document.getElementById('container');
+  document.getElementById('signUp').onclick = () => container.classList.add("right-panel-active");
+  document.getElementById('signIn').onclick = () => container.classList.remove("right-panel-active");
 </script>
 
 </body>
