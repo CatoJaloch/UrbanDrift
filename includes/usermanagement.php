@@ -7,10 +7,13 @@ include '../includes/sidebar.php'; // optional
 include '../includes/db.php'; // connection to database
 
 // Handle deactivation
-if (isset($_POST['deactivate_id'])) {
-    $userId = $_POST['deactivate_id'];
-    $query = "UPDATE users SET status = 'inactive' WHERE id = $userId";
-    mysqli_query($conn, $query);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deactivate_id'])) {
+    $userId = intval($_POST['deactivate_id']);  // force integer
+    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $stmt->close();
+    
 }
 
 // Fetch all users
