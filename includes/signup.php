@@ -1,12 +1,16 @@
 <?php
 session_start();
-include '../includes/db.php'; // Adjust path to your db.php
+include '../includes/db.php'; // Your DB connection
+
+// Enable error display for development
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 $signup_success = false;
 $signup_error = '';
 $login_error = '';
 
-// Handle Sign Up
+// === SIGNUP HANDLER ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
   $name = trim($_POST['name']);
   $email = trim($_POST['email']);
@@ -14,32 +18,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
   $age = intval($_POST['age']);
   $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-  // Check if email already exists
-  $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
-  $stmt->bind_param("s", $email);
-  $stmt->execute();
-  $stmt->store_result();
-
-  if ($stmt->num_rows > 0) {
-    $signup_error = "Email is already registered.";
+  if (empty($name) || empty($email) || empty($_POST['password'])) {
+    $signup_error = "Please fill in all required fields.";
   } else {
-    $stmt_insert = $conn->prepare("
-      INSERT INTO users (name, email, password, gender, age)
-      VALUES (?, ?, ?, ?, ?)"
-    );
-    $stmt_insert->bind_param("ssssi", $name, $email, $password, $gender, $age);
-    if ($stmt_insert->execute()) {
-      $signup_success = true;
-    } else {
-      $signup_error = "Signup failed. Please try again.";
-    }
-    $stmt_insert->close();
-  }
+    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->store_result();
 
-  $stmt->close();
+    if ($stmt->num_rows > 0) {
+      $signup_error = "Email is already registered.";
+    } else {
+      $stmt_insert = $conn->prepare("
+        INSERT INTO users (name, email, password, gender, age)
+        VALUES (?, ?, ?, ?, ?)
+      ");
+      $stmt_insert->bind_param("ssssi", $name, $email, $password, $gender, $age);
+      if ($stmt_insert->execute()) {
+        $signup_success = true;
+      } else {
+        $signup_error = "Signup failed. Please try again.";
+      }
+      $stmt_insert->close();
+    }
+    $stmt->close();
+  }
 }
 
-// Handle Login
+// === LOGIN HANDLER ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
   $email = trim($_POST['login_email']);
   $password = $_POST['login_password'];
@@ -117,7 +123,7 @@ $conn->close();
       </form>
     </div>
 
-    <!-- Overlay panels (unchanged) -->
+    <!-- Overlay -->
     <div class="overlay-container">
       <div class="overlay">
         <div class="overlay-panel overlay-left">
