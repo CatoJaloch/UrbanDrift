@@ -24,10 +24,11 @@ $user_id = $_SESSION['user_id'];
     <div class="nav-left">
       <div class="logo">🚗</div>
       <span class="site-name">UrbanDrift</span>
-      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="dashboard.php" class="nav-link">Dashboard</a>
       <a href="./offerride.php" class="nav-link">Offer Ride</a>
       <a href="findride.php" class="nav-link">Find Ride</a>
       <a href="../includes/myrides.php" class="nav-link">My Ride</a>
+      
     </div>
     <div class="nav-right">
       <a href="../includes/signup.php" class="nav-link"><i class="fas fa-user"></i> Login/Signup</a>
