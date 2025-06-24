@@ -1,5 +1,29 @@
 <?php
+
 session_start();
+if (!isset($_SESSION['user_id'])) {
+  header("Location: signup.php");
+  exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+include '../includes/db.php';
+
+// Check if user is a driver
+$stmt = $conn->prepare("SELECT is_driver FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($is_driver);
+$stmt->fetch();
+$stmt->close();
+
+if (!$is_driver) {
+  $_SESSION['message'] = "⚠️ Only registered drivers can access this page.";
+  header("Location: become_driver.php");
+  exit;
+}
+
 include '../includes/db.php';
 include '../includes/sidebar.php';
 include '../includes/navbar.php';

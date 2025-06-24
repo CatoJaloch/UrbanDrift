@@ -33,14 +33,17 @@ include '../includes/navbar.php';
     <h2>Find a Ride</h2>
     <form class="find-ride-form" id="rideForm">
       <div class="form-row">
-        <div class="form-group">
-          <label>Destination</label>
-          <input type="text" name="destination" placeholder="Enter destination" />
-        </div>
-        <div class="form-group">
-          <label>Pickup Place</label>
-          <input type="text" name="origin" placeholder="Enter pickup place" />
-        </div>
+      <div class="form-group" style="position: relative;">
+  <label>Pickup Place</label>  
+   <input type="text" name="origin" id="origin" placeholder="Enter pickup place" autocomplete="off" /> 
+     <div id="origin-suggestions" class="suggestion-dropdown"></div>
+</div>
+<div class="form-group" style="position: relative;">
+   <label>Destination</label>
+  <input type="text" name="destination" id="destination" placeholder="Enter destination" autocomplete="off" />
+  <div id="destination-suggestions" class="suggestion-dropdown"></div>
+</div>
+
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -99,6 +102,59 @@ document.getElementById('rideForm').addEventListener('submit', function(e) {
   });
 });
 </script>
+<script>
+function attachAutocomplete(inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+
+  input.addEventListener("input", () => {
+    const query = input.value.trim();
+    dropdown.innerHTML = "";
+    dropdown.style.display = "none";
+
+    if (query.length < 3) return;
+
+    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`)
+      .then(res => res.json())
+      .then(data => {
+        data.features.forEach(place => {
+          const name = place.properties.name || '';
+          const city = place.properties.city || '';
+          const country = place.properties.country || '';
+          const label = [name, city, country].filter(Boolean).join(', ');
+
+          const div = document.createElement("div");
+          div.textContent = label;
+
+          div.addEventListener("click", () => {
+            input.value = label;
+            dropdown.innerHTML = "";
+            dropdown.style.display = "none";
+          });
+
+          dropdown.appendChild(div);
+        });
+
+        if (dropdown.children.length > 0) {
+          dropdown.style.display = "block";
+        }
+      })
+      .catch(err => console.error("Autocomplete error:", err));
+  });
+
+  // Hide suggestions on click outside
+  document.addEventListener("click", (e) => {
+    if (!dropdown.contains(e.target) && e.target !== input) {
+      dropdown.innerHTML = "";
+      dropdown.style.display = "none";
+    }
+  });
+}
+
+attachAutocomplete("origin", "origin-suggestions");
+attachAutocomplete("destination", "destination-suggestions");
+</script>
+
 
 </body>
 </html>

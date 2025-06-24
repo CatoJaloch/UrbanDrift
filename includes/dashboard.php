@@ -6,6 +6,27 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user_id = $_SESSION['user_id'];
 ?>
+<?php
+include '../includes/db.php';
+
+$user_id = $_SESSION['user_id'];
+$stmt = $conn->prepare("SELECT is_verified FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($is_verified);
+$stmt->fetch();
+$stmt->close();
+?>
+
+<?php if (!$is_verified): ?>
+  <div style="background: #ffefc3; color: #8a6d3b; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    ⚠️ Your account is awaiting verification by the estate admin.
+  </div>
+<?php else: ?>
+  <div style="background: #dff0d8; color: #3c763d; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    ✅ You are verified!
+  </div>
+<?php endif; ?>
 
 
 <!DOCTYPE html>

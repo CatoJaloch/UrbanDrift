@@ -1,4 +1,20 @@
-<!-- Navbar -->
+<?php
+include 'db.php'; // Ensure DB connection is available
+
+$user_id = $_SESSION['user_id'] ?? null;
+$user_name = 'Guest';
+$is_verified = false;
+
+if ($user_id) {
+  $stmt = $conn->prepare("SELECT name, is_verified FROM users WHERE id = ?");
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $stmt->bind_result($user_name, $is_verified);
+  $stmt->fetch();
+  $stmt->close();
+}
+?>
+
 <nav class="navbar">
   <div class="nav-left">
     <div class="logo">🚗</div>
@@ -10,7 +26,12 @@
     <a href="../includes/logout.php" class="nav-link">Logout</a>
   </div>
   <div class="nav-right">
-    <a href="../includes/signup.php" class="nav-link"><i class="fas fa-user"></i> Login/Signup</a>
+    <span class="user-info">
+      <i class="fas fa-user-circle"></i> <?= htmlspecialchars($user_name) ?>
+      <?php if ($is_verified): ?>
+        <span class="verified-badge"><i class="fas fa-check-circle"></i> Verified</span>
+      <?php endif; ?>
+    </span>
     <a href="#" class="nav-link"><i class="fas fa-bell"></i></a>
   </div>
 </nav>
@@ -59,5 +80,21 @@
 
   .nav-link:hover {
     color: purple;
+  }
+
+  .user-info {
+    font-weight: 500;
+    color: #333;
+  }
+
+  .verified-badge {
+    color: #3b82f6;
+    font-size: 0.85em;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .verified-badge i {
+    margin-right: 3px;
   }
 </style>

@@ -1,8 +1,7 @@
 <?php
 session_start();
-include '../includes/db.php'; // Your DB connection
+include '../includes/db.php';
 
-// Enable error display for development
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -16,9 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
   $email = trim($_POST['email']);
   $gender = trim($_POST['gender']);
   $age = intval($_POST['age']);
+  $house_number = trim($_POST['house_number']);
   $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+  $estate_id = intval($_POST['estate_id']);
 
-  if (empty($name) || empty($email) || empty($_POST['password'])) {
+  if (empty($name) || empty($email) || empty($_POST['password']) || empty($house_number) || empty($estate_id)) {
     $signup_error = "Please fill in all required fields.";
   } else {
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
@@ -30,10 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
       $signup_error = "Email is already registered.";
     } else {
       $stmt_insert = $conn->prepare("
-        INSERT INTO users (name, email, password, gender, age)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (name, email, password, gender, age, house_number, estate_id, is_verified, verification_requested_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 0, NOW())
       ");
-      $stmt_insert->bind_param("ssssi", $name, $email, $password, $gender, $age);
+      $stmt_insert->bind_param("ssssisi", $name, $email, $password, $gender, $age, $house_number, $estate_id);
       if ($stmt_insert->execute()) {
         $signup_success = true;
       } else {
@@ -58,23 +59,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
   if ($result && $result->num_rows === 1) {
     $user = $result->fetch_assoc();
     if (password_verify($password, $user['password'])) {
-      $_SESSION['user_id'] = $user['id'];
-      $_SESSION['user_name'] = $user['name'];
-      header("Location: dashboard.php");
-      exit;
+      $verify = $conn->prepare("SELECT is_verified FROM users WHERE id = ?");
+      $verify->bind_param("i", $user['id']);
+      $verify->execute();
+      $verify->bind_result($is_verified);
+      $verify->fetch();
+      $verify->close();
+
+      if (!$is_verified) {
+        $login_error = "⏳ Your account is pending verification by the estate admin.";
+      } else {
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        header("Location: dashboard.php");
+        exit;
+      }
     } else {
       $login_error = "Incorrect password.";
     }
   } else {
     $login_error = "No account found with that email.";
   }
-
   $stmt->close();
 }
 
+// Fetch estates for dropdown
+$estate_result = $conn->query("SELECT id, name FROM estates");
 $conn->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -90,12 +102,11 @@ $conn->close();
 <div style="margin-left: 220px; padding: 40px;">
   <div class="container" id="container">
 
-    <!-- Sign Up Form -->
     <div class="form-container sign-up-container">
       <form method="post" action="">
         <h1>Create Account</h1>
         <?php if ($signup_success): ?>
-          <p style="color:green;">✅ Account created! Please sign in below.</p>
+          <p style="color:green;">✅ Account created! Await admin verification.</p>
         <?php elseif ($signup_error): ?>
           <p style="color:red;"><?php echo $signup_error; ?></p>
         <?php endif; ?>
@@ -105,11 +116,17 @@ $conn->close();
         <input type="password" name="password" placeholder="Password" required />
         <input type="text" name="gender" placeholder="Gender (M/F)" />
         <input type="number" name="age" placeholder="Age" />
+        <input type="text" name="house_number" placeholder="House Number" required>
+        <select name="estate_id" required>
+          <option value="">Select Estate</option>
+          <?php while ($estate = $estate_result->fetch_assoc()): ?>
+            <option value="<?= htmlspecialchars($estate['id']) ?>"><?= htmlspecialchars($estate['name']) ?></option>
+          <?php endwhile; ?>
+        </select>
         <button type="submit" name="signup">Sign Up</button>
       </form>
     </div>
 
-    <!-- Login Form -->
     <div class="form-container sign-in-container">
       <form method="post" action="">
         <h1>Sign In</h1>
@@ -123,7 +140,6 @@ $conn->close();
       </form>
     </div>
 
-    <!-- Overlay -->
     <div class="overlay-container">
       <div class="overlay">
         <div class="overlay-panel overlay-left">
@@ -132,6 +148,7 @@ $conn->close();
         </div>
         <div class="overlay-panel overlay-right">
           <h2>New here?</h2>
+          <a href="../admin/admin_signup.php" class="admin-link">Admin Signup</a>
           <button class="ghost" id="signUp">Sign Up</button>
         </div>
       </div>

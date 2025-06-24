@@ -13,7 +13,7 @@ body {
 }
 
 h2 {
-  color: #4f46e5;
+  color: purple;
   margin-bottom: 1.5rem;
 }
 
@@ -35,7 +35,7 @@ h2 {
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #4f46e5;
+  border: 4px solid purple;
   margin-bottom: 1rem;
 }
 
@@ -62,7 +62,7 @@ input[type="file"] {
 }
 
 button {
-  background-color: #4f46e5;
+  background-color: purple;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
@@ -73,5 +73,5 @@ button {
 }
 
 button:hover {
-  background-color: #3730a3;
+  background-color: purple;
 }

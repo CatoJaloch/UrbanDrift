@@ -161,4 +161,11 @@
     right: 0;
     transform: translateX(0);
   }
-  
+  .admin-link {
+  color: black;
+  text-decoration: none;
+}
+
+.admin-link:hover {
+  color: purple; /* Optional hover color */
+}

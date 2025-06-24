@@ -1,14 +1,27 @@
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
-  header("Location: signup.php"); // redirect to login if not authenticated
+  header("Location: signup.php");
   exit;
 }
-$user_id = $_SESSION['user_id'];
-?>
 
-<?php
-include '../includes/db.php'; 
+$user_id = $_SESSION['user_id'];
+include '../includes/db.php';
+
+// Check if user is a driver
+$stmt = $conn->prepare("SELECT is_driver FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$stmt->bind_result($is_driver);
+$stmt->fetch();
+$stmt->close();
+
+if (!$is_driver) {
+  $_SESSION['message'] = "⚠️ Only registered drivers can access this page.";
+  header("Location: become_driver.php");
+  exit;
+}
+
 $success = false;
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -21,11 +34,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $comments = $_POST['comments'] ?? '';
 
   $sql = "INSERT INTO ride_offers (user_id, origin, destination, departure_date, departure_time, return_time, seats, comments)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
-
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
   $stmt = $conn->prepare($sql);
-$stmt->bind_param("isssssis", $user_id, $origin, $destination, $departure_date, $departure_time, $return_time, $seats, $comments);
+  $stmt->bind_param("isssssis", $user_id, $origin, $destination, $departure_date, $departure_time, $return_time, $seats, $comments);
 
   if ($stmt->execute()) {
     $success = true;
@@ -35,14 +46,22 @@ $stmt->bind_param("isssssis", $user_id, $origin, $destination, $departure_date, 
   $conn->close();
 }
 ?>
+
 <?php include '../includes/navbar.php'; ?>
 <?php include '../includes/sidebar.php'; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Offer a Ride</title>
+<!-- Include jQuery, Typeahead, and Photon plugin -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/corejs-typeahead/1.3.2/typeahead.bundle.min.js"></script>
+<script src="https://unpkg.com/typeahead-address-photon/dist/bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/typeahead-address-photon/dist/bundle.css">
+
 <link rel="stylesheet" href="../css/offerride.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -61,15 +80,19 @@ $stmt->bind_param("isssssis", $user_id, $origin, $destination, $departure_date, 
 
     <form class="ride-form"  method="post">
       <div class="form-row">
-        <div class="form-group">
-          <label><i class="fas fa-map-marker-alt"></i> Origin</label>
-          <input type="text" name="origin" placeholder="e.g., karafuke ,county h" required />
-        </div>
-        <div class="form-group">
-          <label><i class="fas fa-location-dot"></i> Destination</label>
-          <input type="text" name="destination" placeholder="e.g., University Campus, City B" required />
-        </div>
-      </div>
+    <div class="form-group" style="position: relative;">
+  <label><i class="fas fa-map-marker-alt"></i> Origin</label>
+  <input type="text" id="origin" name="origin" placeholder="Enter origin" autocomplete="off">
+  <div id="origin-suggestions" class="suggestion-dropdown"></div>
+</div>
+
+<div class="form-group" style="position: relative;">
+  <label><i class="fas fa-location-dot"></i> Destination</label>
+  <input type="text" id="destination" name="destination" placeholder="Enter destination" autocomplete="off">
+  <div id="destination-suggestions" class="suggestion-dropdown"></div>
+</div>
+
+      
 
       <div class="form-row">
         <div class="form-group">
@@ -104,6 +127,56 @@ $stmt->bind_param("isssssis", $user_id, $origin, $destination, $departure_date, 
     </form>
   </div>
 </div>
+<script>
+function setupAutocomplete(inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+
+  input.addEventListener("input", function () {
+    const query = input.value.trim();
+    dropdown.innerHTML = "";
+    dropdown.style.display = "none";
+
+    if (query.length < 3) return;
+
+    fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`)
+      .then(res => res.json())
+      .then(data => {
+        data.features.forEach(place => {
+          const item = document.createElement("div");
+          const name = place.properties.name || "";
+          const city = place.properties.city || "";
+          const country = place.properties.country || "";
+          item.textContent = `${name}, ${city}, ${country}`.replace(/^, |, ,/g, '').trim();
+          item.onclick = () => {
+            input.value = item.textContent;
+            dropdown.innerHTML = "";
+            dropdown.style.display = "none";
+          };
+          dropdown.appendChild(item);
+        });
+
+        if (dropdown.children.length > 0) {
+          dropdown.style.display = "block";
+        }
+      })
+      .catch(err => console.error("Autocomplete error:", err));
+  });
+
+  // Hide suggestions when clicking outside
+  document.addEventListener("click", function (e) {
+    if (!dropdown.contains(e.target) && e.target !== input) {
+      dropdown.innerHTML = "";
+      dropdown.style.display = "none";
+    }
+  });
+}
+
+setupAutocomplete("origin", "origin-suggestions");
+setupAutocomplete("destination", "destination-suggestions");
+</script>
+
+
 
 </body>
 </html>
