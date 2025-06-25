@@ -14,13 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
   $name = trim($_POST['name']);
   $email = trim($_POST['email']);
   $gender = trim($_POST['gender']);
-  $age = intval($_POST['age']);
+  $dob = $_POST['dob'];
   $house_number = trim($_POST['house_number']);
   $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
   $estate_id = intval($_POST['estate_id']);
 
-  if (empty($name) || empty($email) || empty($_POST['password']) || empty($house_number) || empty($estate_id)) {
+  $age = date_diff(date_create($dob), date_create('today'))->y;
+
+  if (empty($name) || empty($email) || empty($_POST['password']) || empty($house_number) || empty($estate_id) || empty($gender) || empty($dob)) {
     $signup_error = "Please fill in all required fields.";
+  } elseif ($age < 18) {
+    $signup_error = "You must be at least 18 years old to register.";
   } else {
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
@@ -31,10 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
       $signup_error = "Email is already registered.";
     } else {
       $stmt_insert = $conn->prepare("
-        INSERT INTO users (name, email, password, gender, age, house_number, estate_id, is_verified, verification_requested_at)
+        INSERT INTO users (name, email, password, gender, dob, house_number, estate_id, is_verified, verification_requested_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, 0, NOW())
       ");
-      $stmt_insert->bind_param("ssssisi", $name, $email, $password, $gender, $age, $house_number, $estate_id);
+      $stmt_insert->bind_param("ssssssi", $name, $email, $password, $gender, $dob, $house_number, $estate_id);
       if ($stmt_insert->execute()) {
         $signup_success = true;
       } else {
@@ -114,15 +118,24 @@ $conn->close();
         <input type="text" name="name" placeholder="Name" required />
         <input type="email" name="email" placeholder="Email" required />
         <input type="password" name="password" placeholder="Password" required />
-        <input type="text" name="gender" placeholder="Gender (M/F)" />
-        <input type="number" name="age" placeholder="Age" />
+        
+        <select name="gender" required>
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+
+        <input type="date" name="dob" placeholder="Date of Birth" required />
+
         <input type="text" name="house_number" placeholder="House Number" required>
+
         <select name="estate_id" required>
           <option value="">Select Estate</option>
           <?php while ($estate = $estate_result->fetch_assoc()): ?>
             <option value="<?= htmlspecialchars($estate['id']) ?>"><?= htmlspecialchars($estate['name']) ?></option>
           <?php endwhile; ?>
         </select>
+
         <button type="submit" name="signup">Sign Up</button>
       </form>
     </div>
