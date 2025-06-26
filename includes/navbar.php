@@ -17,7 +17,10 @@ if ($user_id) {
 
 <nav class="navbar">
   <div class="nav-left">
-    <div class="logo">🚗</div>
+   <div class="logo">
+  <a href="../includes/dashboard.php">🚗</a>
+</div>
+
     <span class="site-name">UrbanDrift</span>
     <a href="../includes/dashboard.php" class="nav-link">Dashboard</a>
     <a href="../includes/offerride.php" class="nav-link">Offer Ride</a>

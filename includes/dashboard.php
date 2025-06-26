@@ -1,3 +1,4 @@
+<?php include '../includes/sidebar.php';?>
 <?php
 session_start();
 if (!isset($_SESSION['user_id'])) {
@@ -23,7 +24,7 @@ $stmt->close();
     ⚠️ Your account is awaiting verification by the estate admin.
   </div>
 <?php else: ?>
-  <div style="background: #dff0d8; color: #3c763d; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+  <div style="background: #dff0d8; color: #3c763d; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align:center">
     ✅ You are verified!
   </div>
 <?php endif; ?>
@@ -42,8 +43,10 @@ $stmt->close();
 <body>
   <!-- Navigation Bar -->
   <nav class="navbar">
-    <div class="nav-left">
-      <div class="logo">🚗</div>
+    <div class="nav-left"> <div class="logo">
+  <a href="../includes/dashboard.php">🚗</a>
+</div>
+
       <span class="site-name">UrbanDrift</span>
       <a href="dashboard.php" class="nav-link">Dashboard</a>
       <a href="./offerride.php" class="nav-link">Offer Ride</a>
