@@ -5,7 +5,7 @@ $conditions = [];
 $params = [];
 $types = "";
 
-// Add filters
+// Filters
 if (!empty($_POST['destination'])) {
   $conditions[] = "r.destination LIKE ?";
   $params[] = "%" . $_POST['destination'] . "%";
@@ -52,25 +52,41 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
   while ($ride = $result->fetch_assoc()) {
+    // Count already accepted bookings
+    $ride_id = $ride['id'];
+    $booking_stmt = $conn->prepare("SELECT COUNT(*) FROM ride_bookings WHERE ride_id = ? AND status = 'accepted'");
+    $booking_stmt->bind_param("i", $ride_id);
+    $booking_stmt->execute();
+    $booking_stmt->bind_result($booked_seats);
+    $booking_stmt->fetch();
+    $booking_stmt->close();
+
+    $available_seats = $ride['seats'] - $booked_seats;
+
     echo "<div class='ride-box'>";
     echo "<p><strong>From:</strong> " . htmlspecialchars($ride['origin']) . "</p>";
     echo "<p><strong>To:</strong> " . htmlspecialchars($ride['destination']) . "</p>";
     echo "<p><strong>Date:</strong> " . $ride['departure_date'] . "</p>";
     echo "<p><strong>Time:</strong> " . $ride['departure_time'] . "</p>";
-    echo "<p><strong>Seats:</strong> " . $ride['seats'] . "</p>";
+    echo "<p><strong>Total Seats:</strong> " . $ride['seats'] . "</p>";
+    echo "<p><strong>Available Seats:</strong> " . $available_seats . "</p>";
     echo "<p><strong>Driver:</strong> " . htmlspecialchars($ride['driver_name']) . "</p>";
-    echo "<p><strong>Driver Rating:</strong> " . 
-         ($ride['driver_rating'] ? "⭐ " . round($ride['driver_rating'], 1) . "/5" : "Not rated yet") . 
+    echo "<p><strong>Driver Rating:</strong> " .
+         ($ride['driver_rating'] ? "⭐ " . round($ride['driver_rating'], 1) . "/5" : "Not rated yet") .
          "</p>";
 
     echo "<a href='view_driver.php?driver_id=" . $ride['user_id'] . "' class='btn-view'>View Driver Details</a>";
 
-    // Request button
-    echo "<form class='book-ride-form' data-ride-id='" . $ride['id'] . "'>";
-    echo "<button type='button' class='request-btn'>Request Seat</button>";
-    echo "</form>";
-    echo "<div class='request-message' id='request-message-" . $ride['id'] . "'></div>";
+    // Request button or full message
+    if ($available_seats > 0) {
+      echo "<form class='book-ride-form' data-ride-id='" . $ride['id'] . "'>";
+      echo "<button type='button' class='request-btn'>Request Seat</button>";
+      echo "</form>";
+    } else {
+      echo "<p style='color: red; font-weight: bold;'>❌ This ride is fully booked.</p>";
+    }
 
+    echo "<div class='request-message' id='request-message-" . $ride['id'] . "'></div>";
     echo "</div>";
   }
 } else {
