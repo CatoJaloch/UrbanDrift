@@ -114,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
       </div>
       <div class="overlay-panel overlay-right">
         <h2>New Admin?</h2>
+        <a href ="../includes/signup.php" class="admin-link"> user signup</a>
         <button class="ghost" id="signUp">Sign Up</button>
       </div>
     </div>

@@ -177,7 +177,7 @@ textarea {
 
 .ride-box .request-btn {
   margin-top: 10px;
-  background-color: #6366f1;
+  background-color: purple;
   color: #fff;
   padding: 8px 16px;
   border: none;
@@ -187,7 +187,7 @@ textarea {
 }
 
 .ride-box .request-btn:hover {
-  background-color: #4f46e5;
+  background-color: purple;
 }
 
 

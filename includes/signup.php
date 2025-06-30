@@ -9,22 +9,23 @@ $signup_success = false;
 $signup_error = '';
 $login_error = '';
 
-// === SIGNUP HANDLER ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
   $name = trim($_POST['name']);
   $email = trim($_POST['email']);
   $gender = trim($_POST['gender']);
   $dob = $_POST['dob'];
   $house_number = trim($_POST['house_number']);
-  $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+  $password_raw = $_POST['password'];
+  $password = password_hash($password_raw, PASSWORD_DEFAULT);
   $estate_id = intval($_POST['estate_id']);
-
   $age = date_diff(date_create($dob), date_create('today'))->y;
 
-  if (empty($name) || empty($email) || empty($_POST['password']) || empty($house_number) || empty($estate_id) || empty($gender) || empty($dob)) {
+  if (empty($name) || empty($email) || empty($password_raw) || empty($house_number) || empty($estate_id) || empty($gender) || empty($dob)) {
     $signup_error = "Please fill in all required fields.";
   } elseif ($age < 18) {
     $signup_error = "You must be at least 18 years old to register.";
+  } elseif (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_]).{8,}$/', $password_raw)) {
+    $signup_error = "Password must be at least 8 characters long, include uppercase, lowercase, digit, and special character.";
   } else {
     $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $stmt->bind_param("s", $email);
@@ -50,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
   }
 }
 
-// === LOGIN HANDLER ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
   $email = trim($_POST['login_email']);
   $password = $_POST['login_password'];
@@ -87,7 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
   $stmt->close();
 }
 
-// Fetch estates for dropdown
 $estate_result = $conn->query("SELECT id, name FROM estates");
 $conn->close();
 ?>
@@ -98,6 +97,7 @@ $conn->close();
   <title>UrbanDrift Signup / Login</title>
   <link rel="stylesheet" href="../css/signup.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 </head>
 <body>
 
@@ -117,17 +117,19 @@ $conn->close();
 
         <input type="text" name="name" placeholder="Name" required />
         <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Password" required />
-        
+        <input type="password" name="password" placeholder="Password" id="password" 
+               title="Min 8 chars, include upper, lower, digit & special char" required />
+        <div id="password-hint"></div>
+
         <select name="gender" required>
           <option value="">Select Gender</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
         </select>
 
-        <input type="date" name="dob" placeholder="Date of Birth" required />
+        <input type="date" name="dob" required />
 
-        <input type="text" name="house_number" placeholder="House Number" required>
+        <input type="text" name="house_number" placeholder="House Number" required />
 
         <select name="estate_id" required>
           <option value="">Select Estate</option>
@@ -146,7 +148,6 @@ $conn->close();
         <?php if ($login_error): ?>
           <p style="color:red;"><?php echo $login_error; ?></p>
         <?php endif; ?>
-
         <input type="email" name="login_email" placeholder="Email" required />
         <input type="password" name="login_password" placeholder="Password" required />
         <button type="submit" name="login">Sign In</button>
@@ -171,9 +172,29 @@ $conn->close();
 </div>
 
 <script>
-  const container = document.getElementById('container');
-  document.getElementById('signUp').onclick = () => container.classList.add("right-panel-active");
-  document.getElementById('signIn').onclick = () => container.classList.remove("right-panel-active");
+const container = document.getElementById('container');
+document.getElementById('signUp').onclick = () => container.classList.add("right-panel-active");
+document.getElementById('signIn').onclick = () => container.classList.remove("right-panel-active");
+
+const passwordInput = document.getElementById('password');
+const hint = document.getElementById('password-hint');
+
+passwordInput.addEventListener('input', function() {
+  const value = passwordInput.value;
+  let messages = [];
+
+  if (value.length < 8) messages.push("Min 8 chars");
+  if (!/[A-Z]/.test(value)) messages.push("Uppercase needed");
+  if (!/[a-z]/.test(value)) messages.push("Lowercase needed");
+  if (!/\d/.test(value)) messages.push("Digit needed");
+  if (!/[\W_]/.test(value)) messages.push("Special char needed");
+
+  if (messages.length === 0) {
+    hint.textContent = "";
+  } else {
+    hint.textContent = messages.join(". ") + ".";
+  }
+});
 </script>
 
 </body>
