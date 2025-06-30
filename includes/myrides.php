@@ -31,27 +31,29 @@ $stmt->close();
 <body>
 <main class="main-content">
   <h2>My Rides</h2>
+<?php while ($ride = $result->fetch_assoc()): ?>
+  <div class="ride-box">
+    <p><strong>Date:</strong> <?= htmlspecialchars($ride['departure_date']) ?></p>
+    <p><strong>Route:</strong> <?= htmlspecialchars($ride['origin']) ?> → <?= htmlspecialchars($ride['destination']) ?></p>
+    <p><strong>Seats:</strong> <?= $ride['seats'] ?></p>
+    <p><strong>Comments:</strong> <?= htmlspecialchars($ride['comments']) ?></p>
+    <p><strong>Status:</strong> <?= ucfirst($ride['status']) ?></p>
 
-  <?php while ($ride = $result->fetch_assoc()): ?>
-    <div class="ride-box">
-      <p><strong>Date:</strong> <?= htmlspecialchars($ride['departure_date']) ?></p>
-      <p><strong>Route:</strong> <?= htmlspecialchars($ride['origin']) ?> → <?= htmlspecialchars($ride['destination']) ?></p>
-      <p><strong>Seats:</strong> <?= $ride['seats'] ?></p>
-      <p><strong>Comments:</strong> <?= htmlspecialchars($ride['comments']) ?></p>
-      <p><strong>Status:</strong> <?= ucfirst($ride['status']) ?></p>
-<!-- Show Mark as Completed only if the ride isn't completed -->
-<?php if ($ride['status'] !== 'completed'): ?>
-  <form method="POST" action="mark_completed.php">
-    <input type="hidden" name="ride_id" value="<?= $ride['id'] ?>">
-    <button type="submit">Mark as Completed</button>
-  </form>
-<?php else: ?>
-  <!-- Ratings Section shown only after ride is completed -->
-  
-<?php endif; ?>
+    <?php if ($ride['status'] !== 'completed'): ?>
+      <form method="POST" action="mark_completed.php">
+        <input type="hidden" name="ride_id" value="<?= $ride['id'] ?>">
+        <button type="submit" class="btn-complete">Mark as Completed</button>
+      </form>
+    <?php else: ?>
+      <form method="POST" action="delete_ride.php" onsubmit="return confirm('Are you sure you want to delete this completed ride?');">
+        <input type="hidden" name="ride_id" value="<?= $ride['id'] ?>">
+        <button type="submit" class="btn-delete">Delete Ride</button>
+      </form>
+    <?php endif; ?>
+  </div>
+<?php endwhile; ?>
 
-    </div>
-  <?php endwhile; ?>
+
 
   <?php if ($result->num_rows === 0): ?>
     <p>No rides yet.</p>

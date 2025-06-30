@@ -52,7 +52,15 @@ include '../includes/navbar.php';
         </div>
         <div class="form-group">
           <label>Pickup Time</label>
-          <input type="time" name="departure_time" />
+<select name="departure_time_range" required>
+  <option value="">Select time range</option>
+  <option value="6:00-9:00">6:00 AM - 9:00 AM</option>
+  <option value="9:00-12:00">9:00 AM - 12:00 PM</option>
+  <option value="12:00-15:00">12:00 PM - 3:00 PM</option>
+  <option value="15:00-18:00">3:00 PM - 6:00 PM</option>
+  <option value="18:00-21:00">6:00 PM - 9:00 PM</option>
+</select>
+
         </div>
       </div>
       <div class="form-row">
@@ -103,6 +111,7 @@ document.getElementById('rideForm').addEventListener('submit', function(e) {
 });
 </script>
 <script>
+
 function attachAutocomplete(inputId, dropdownId) {
   const input = document.getElementById(inputId);
   const dropdown = document.getElementById(dropdownId);
@@ -149,10 +158,36 @@ function attachAutocomplete(inputId, dropdownId) {
       dropdown.style.display = "none";
     }
   });
+  
 }
 
 attachAutocomplete("origin", "origin-suggestions");
 attachAutocomplete("destination", "destination-suggestions");
+</script>
+<script>
+document.addEventListener('click', function(e) {
+  if (e.target.matches('.request-btn')) {
+    const form = e.target.closest('.book-ride-form');
+    const rideId = form.getAttribute('data-ride-id');
+    const msgDiv = document.getElementById(`request-message-${rideId}`);
+
+    fetch('book_ride.php', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({ ride_id: rideId })
+    })
+    .then(res => res.text())
+    .then(text => {
+      msgDiv.textContent = text;
+      msgDiv.style.color = text.toLowerCase().includes('success') ? 'green' : 'red';
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      msgDiv.textContent = '❌ Failed to send request.';
+      msgDiv.style.color = 'red';
+    });
+  }
+});
 </script>
 
 

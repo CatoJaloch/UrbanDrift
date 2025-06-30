@@ -101,14 +101,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </div>
         <div class="form-group">
           <label><i class="fas fa-clock"></i> Time of Departure</label>
-          <input type="time" name="departure_time" required />
+<select name="departure_time_range" required>
+  <option value="">Select time range</option>
+  <option value="6:00-9:00">6:00 AM - 9:00 AM</option>
+  <option value="9:00-12:00">9:00 AM - 12:00 PM</option>
+  <option value="12:00-15:00">12:00 PM - 3:00 PM</option>
+  <option value="15:00-18:00">3:00 PM - 6:00 PM</option>
+  <option value="18:00-21:00">6:00 PM - 9:00 PM</option>
+</select>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
           <label><i class="fas fa-clock"></i> Return Time (Optional)</label>
-          <input type="time" name="return_time" />
+        
+<select name="departure_time_range" required>
+  <option value="">Select time range</option>
+  <option value="6:00-9:00">6:00 AM - 9:00 AM</option>
+  <option value="9:00-12:00">9:00 AM - 12:00 PM</option>
+  <option value="12:00-15:00">12:00 PM - 3:00 PM</option>
+  <option value="15:00-18:00">3:00 PM - 6:00 PM</option>
+  <option value="18:00-21:00">6:00 PM - 9:00 PM</option>
+</select>
+
         </div>
         <div class="form-group">
           <label><i class="fas fa-users"></i> Number of Seats</label>

@@ -69,7 +69,7 @@ $result = $stmt->get_result();
           <td><?= ucfirst($row['status']) ?></td>
           <td>
             <?php if ($row['status'] === 'completed' && !$row['rating_by_passenger']): ?>
-              <a class="btn-rate" href="rate_driver.php?ride_id=<?= $row['ride_id'] ?>">Rate Driver</a>
+              <a class="btn-rate" href="rate_driver.php?ride_id=<?= $row['ride_id'] ?>">Rate </a>
             <?php elseif ($row['rating_by_passenger']): ?>
               ✅ Rated
             <?php else: ?>
