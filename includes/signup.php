@@ -127,8 +127,8 @@ $conn->close();
           <option value="Female">Female</option>
         </select>
 
-        <input type="date" name="dob" required />
-
+<label for="dob">Date of Birth:</label>
+        <input type="date" name="dob" placeholder="Date of Birth"required />
         <input type="text" name="house_number" placeholder="House Number" required />
 
         <select name="estate_id" required>

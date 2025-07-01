@@ -170,16 +170,28 @@ document.addEventListener('click', function(e) {
     const form = e.target.closest('.book-ride-form');
     const rideId = form.getAttribute('data-ride-id');
     const msgDiv = document.getElementById(`request-message-${rideId}`);
+    
+    // ✅ Get the value of seats from the main form
+    const seats = document.querySelector('#rideForm select[name="seats"]').value;
+
+    if (!seats || parseInt(seats) <= 0) {
+      msgDiv.textContent = '⚠️ Please select number of seats before requesting.';
+      msgDiv.style.color = 'red';
+      return;
+    }
 
     fetch('book_ride.php', {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({ ride_id: rideId })
+      body: new URLSearchParams({ 
+        ride_id: rideId,
+        seats: seats
+      })
     })
     .then(res => res.text())
     .then(text => {
       msgDiv.textContent = text;
-      msgDiv.style.color = text.toLowerCase().includes('success') ? 'green' : 'red';
+      msgDiv.style.color = text.toLowerCase().includes('✅') ? 'green' : 'red';
     })
     .catch(err => {
       console.error('Error:', err);
@@ -188,6 +200,7 @@ document.addEventListener('click', function(e) {
     });
   }
 });
+
 </script>
 
 

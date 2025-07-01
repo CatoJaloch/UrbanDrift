@@ -25,21 +25,32 @@ if (!empty($_POST['seats'])) {
   $conditions[] = "r.seats >= ?";
   $params[] = $_POST['seats'];
   $types .= "i";
+  $requested_seats = intval($_POST['seats']); // Store for booking
+} else {
+  $requested_seats = 1; // Default to 1 if not provided
 }
 
 // Build query
 $sql = "
   SELECT r.*, u.name AS driver_name,
-    (SELECT AVG(rating_by_passenger) FROM ride_offers WHERE user_id = r.user_id AND rating_by_passenger IS NOT NULL) AS driver_rating
+    (SELECT AVG(rating_by_passenger) 
+     FROM ride_offers 
+     WHERE user_id = r.user_id AND rating_by_passenger IS NOT NULL) AS driver_rating,
+    COALESCE((
+      SELECT SUM(b.seats_requested)
+      FROM ride_bookings b
+      WHERE b.ride_id = r.id AND b.status = 'accepted'
+    ), 0) AS seats_booked
   FROM ride_offers r
   JOIN users u ON r.user_id = u.id
 ";
+
 if (!empty($conditions)) {
   $sql .= " WHERE " . implode(" AND ", $conditions);
 }
 
 $stmt = $conn->prepare($sql);
-if ($stmt === false) {
+if (!$stmt) {
   die("SQL prepare error: " . $conn->error);
 }
 
@@ -52,22 +63,13 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
   while ($ride = $result->fetch_assoc()) {
-    // Count already accepted bookings
-    $ride_id = $ride['id'];
-    $booking_stmt = $conn->prepare("SELECT COUNT(*) FROM ride_bookings WHERE ride_id = ? AND status = 'accepted'");
-    $booking_stmt->bind_param("i", $ride_id);
-    $booking_stmt->execute();
-    $booking_stmt->bind_result($booked_seats);
-    $booking_stmt->fetch();
-    $booking_stmt->close();
-
-    $available_seats = $ride['seats'] - $booked_seats;
+    $available_seats = $ride['seats'] - $ride['seats_booked'];
 
     echo "<div class='ride-box'>";
     echo "<p><strong>From:</strong> " . htmlspecialchars($ride['origin']) . "</p>";
     echo "<p><strong>To:</strong> " . htmlspecialchars($ride['destination']) . "</p>";
-    echo "<p><strong>Date:</strong> " . $ride['departure_date'] . "</p>";
-    echo "<p><strong>Time:</strong> " . $ride['departure_time'] . "</p>";
+    echo "<p><strong>Date:</strong> " . htmlspecialchars($ride['departure_date']) . "</p>";
+    echo "<p><strong>Time:</strong> " . htmlspecialchars($ride['departure_time']) . "</p>";
     echo "<p><strong>Total Seats:</strong> " . $ride['seats'] . "</p>";
     echo "<p><strong>Available Seats:</strong> " . $available_seats . "</p>";
     echo "<p><strong>Driver:</strong> " . htmlspecialchars($ride['driver_name']) . "</p>";
@@ -77,13 +79,13 @@ if ($result->num_rows > 0) {
 
     echo "<a href='view_driver.php?driver_id=" . $ride['user_id'] . "' class='btn-view'>View Driver Details</a>";
 
-    // Request button or full message
-    if ($available_seats > 0) {
+    if ($available_seats >= $requested_seats) {
       echo "<form class='book-ride-form' data-ride-id='" . $ride['id'] . "'>";
-      echo "<button type='button' class='request-btn'>Request Seat</button>";
+      echo "<input type='hidden' name='seats' value='" . $requested_seats . "' />";
+      echo "<button type='button' class='request-btn'>Request $requested_seats Seat" . ($requested_seats > 1 ? "s" : "") . "</button>";
       echo "</form>";
     } else {
-      echo "<p style='color: red; font-weight: bold;'>❌ This ride is fully booked.</p>";
+      echo "<p style='color: red; font-weight: bold;'>❌ Not enough seats for your request.</p>";
     }
 
     echo "<div class='request-message' id='request-message-" . $ride['id'] . "'></div>";

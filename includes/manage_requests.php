@@ -57,7 +57,7 @@ $result = $stmt->get_result();
         <tr>
           <th>Passenger</th>
           <th>Route</th>
-          <th>Date</th>
+          <th>Details</th>
           <th>Time</th>
           <th>Status</th>
           <th>Actions</th>
@@ -65,24 +65,27 @@ $result = $stmt->get_result();
       </thead>
       <tbody>
         <?php while ($row = $result->fetch_assoc()): ?>
-        <tr>
-          <td><?= $row['name'] ?></td>
-          <td><?= $row['origin'] ?> → <?= $row['destination'] ?></td>
-          <td><?= $row['departure_date'] ?></td>
-          <td><?= $row['departure_time'] ?></td>
-          <td><?= ucfirst($row['status']) ?></td>
-          <td>
-            <?php if ($row['status'] == 'pending'): ?>
-              <form action="update_booking_status.php" method="post" style="display:inline;">
-                <input type="hidden" name="booking_id" value="<?= $row['booking_id'] ?>">
-                <button name="action" value="accepted">✅ Accept</button>
-                <button name="action" value="rejected">❌ Reject</button>
-              </form>
-            <?php else: ?>
-              <?= ucfirst($row['status']) ?>
-            <?php endif; ?>
-          </td>
-        </tr>
+       <tr>
+  <td><?= htmlspecialchars($row['name']) ?></td>
+  <td><?= htmlspecialchars($row['origin']) ?> → <?= htmlspecialchars($row['destination']) ?></td>
+  <td>
+    <a href="view_passenger.php?booking_id=<?= $row['booking_id'] ?>" class="btn-view">View Details</a>
+  </td>
+  <td><?= htmlspecialchars($row['departure_time']) ?></td>
+  <td><?= ucfirst($row['status']) ?></td>
+  <td>
+    <?php if ($row['status'] == 'pending'): ?>
+      <form action="update_booking_status.php" method="post" style="display:inline;">
+        <input type="hidden" name="booking_id" value="<?= $row['booking_id'] ?>">
+        <button name="action" value="accepted">✅ Accept</button>
+        <button name="action" value="rejected">❌ Reject</button>
+      </form>
+    <?php else: ?>
+      <?= ucfirst($row['status']) ?>
+    <?php endif; ?>
+  </td>
+</tr>
+
         <?php endwhile; ?>
       </tbody>
     </table>
@@ -91,4 +94,19 @@ $result = $stmt->get_result();
   <?php endif; ?>
 </div>
 </body>
+<style>
+  .btn-view {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #3b82f6;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  .btn-view:hover {
+    background: #2563eb;
+  }
+</style>
+
 </html>

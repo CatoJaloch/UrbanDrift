@@ -47,7 +47,7 @@ th, td {
   text-decoration: underline;
 }
 .btn-delete {
-  background: #f44336;
+  background: red;
   color: purple;
   padding: 8px 12px;
   border: none;
