@@ -3,38 +3,17 @@ session_start();
 include '../includes/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-  die("⚠️ You must be logged in to book a ride.");
+  die("You must be logged in to book a ride.");
 }
 
 $user_id = $_SESSION['user_id'];
 $ride_id = intval($_POST['ride_id'] ?? 0);
-$seats_requested = intval($_POST['seats'] ?? 0);
+$seats_requested = intval($_POST['seats'] ?? 1);
 
+// Validate input
 if ($ride_id <= 0 || $seats_requested <= 0) {
-  die("⚠️ Ride ID or seats missing or invalid.");
-}
-
-// Check available seats
-$stmt = $conn->prepare("
-  SELECT r.seats, 
-    COALESCE((
-      SELECT SUM(b.seats_requested) 
-      FROM ride_bookings b 
-      WHERE b.ride_id = r.id AND b.status = 'accepted'
-    ), 0) AS booked
-  FROM ride_offers r
-  WHERE r.id = ?
-");
-$stmt->bind_param("i", $ride_id);
-$stmt->execute();
-$stmt->bind_result($total_seats, $booked);
-$stmt->fetch();
-$stmt->close();
-
-$available = $total_seats - $booked;
-
-if ($seats_requested > $available) {
-  die("❌ Not enough seats available. Requested: $seats_requested, Available: $available");
+  echo "⚠️ Ride ID or seats missing or invalid.";
+  exit;
 }
 
 // Insert booking
@@ -45,7 +24,23 @@ $stmt = $conn->prepare("
 $stmt->bind_param("iii", $ride_id, $user_id, $seats_requested);
 
 if ($stmt->execute()) {
-  echo "✅ Booking request for $seats_requested seat" . ($seats_requested > 1 ? "s" : "") . " sent!";
+  echo "✅ Booking request sent!";
+
+  // Fetch driver ID
+  $driver_stmt = $conn->prepare("SELECT user_id, origin, destination FROM ride_offers WHERE id = ?");
+  $driver_stmt->bind_param("i", $ride_id);
+  $driver_stmt->execute();
+  $driver_stmt->bind_result($driver_id, $origin, $destination);
+  $driver_stmt->fetch();
+  $driver_stmt->close();
+
+  // Insert notification for driver
+  $msg = "🚗 A passenger has requested $seats_requested seat(s) on your ride from $origin to $destination.";
+  $notif_stmt = $conn->prepare("INSERT INTO notifications (user_id, related_user_id, message, created_at) VALUES (?, ?, ?, NOW())");
+  $notif_stmt->bind_param("iis", $driver_id, $user_id, $msg);
+  $notif_stmt->execute();
+  $notif_stmt->close();
+
 } else {
   echo "❌ Could not send request: " . $stmt->error;
 }

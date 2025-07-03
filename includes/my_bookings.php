@@ -14,19 +14,21 @@ $stmt = $conn->prepare("
     ro.departure_date,
     ro.departure_time,
     ro.status,
-    ro.rating_by_passenger,
-    a.name AS driver_name
+    a.name AS driver_name,
+    (
+      SELECT COUNT(*) FROM ride_ratings 
+      WHERE ride_id = ro.id AND user_id = ?
+    ) AS has_rated
   FROM ride_bookings rb
   JOIN ride_offers ro ON rb.ride_id = ro.id
   JOIN users a ON ro.user_id = a.id
   WHERE rb.user_id = ?
   ORDER BY rb.requested_at DESC
 ");
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("ii", $user_id, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -68,9 +70,9 @@ $result = $stmt->get_result();
           <td><?= htmlspecialchars($row['driver_name']) ?></td>
           <td><?= ucfirst($row['status']) ?></td>
           <td>
-            <?php if ($row['status'] === 'completed' && !$row['rating_by_passenger']): ?>
-              <a class="btn-rate" href="rate_driver.php?ride_id=<?= $row['ride_id'] ?>">Rate </a>
-            <?php elseif ($row['rating_by_passenger']): ?>
+            <?php if ($row['status'] === 'completed' && !$row['has_rated']): ?>
+              <a class="btn-rate" href="rate_driver.php?ride_id=<?= $row['ride_id'] ?>">Rate</a>
+            <?php elseif ($row['has_rated']): ?>
               ✅ Rated
             <?php else: ?>
               —

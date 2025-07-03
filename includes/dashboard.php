@@ -56,7 +56,7 @@ $stmt->close();
     </div>
     <div class="nav-right">
       <a href="../includes/signup.php" class="nav-link"><i class="fas fa-user"></i> Login/Signup</a>
-      <a href="" class="nav-link"><i class="fas fa-bell"></i></a>
+      <a href="../includes/notifications.php" class="nav-link"><i class="fas fa-bell"></i></a>
     </div>
   </nav>
 

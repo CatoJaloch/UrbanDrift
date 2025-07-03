@@ -22,20 +22,21 @@ if (!empty($_POST['departure_date'])) {
   $types .= "s";
 }
 if (!empty($_POST['seats'])) {
-  $conditions[] = "r.seats >= ?";
-  $params[] = $_POST['seats'];
-  $types .= "i";
-  $requested_seats = intval($_POST['seats']); // Store for booking
+  $requested_seats = intval($_POST['seats']);
 } else {
-  $requested_seats = 1; // Default to 1 if not provided
+  $requested_seats = 1;
 }
 
-// Build query
+// Query
 $sql = "
-  SELECT r.*, u.name AS driver_name,
-    (SELECT AVG(rating_by_passenger) 
-     FROM ride_offers 
-     WHERE user_id = r.user_id AND rating_by_passenger IS NOT NULL) AS driver_rating,
+  SELECT 
+    r.*, 
+    u.name AS driver_name,
+    COALESCE((
+      SELECT AVG(rr.rating) 
+      FROM ride_ratings rr 
+      WHERE rr.ride_id = r.id
+    ), 0) AS driver_rating,
     COALESCE((
       SELECT SUM(b.seats_requested)
       FROM ride_bookings b
@@ -51,7 +52,7 @@ if (!empty($conditions)) {
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-  die("SQL prepare error: " . $conn->error);
+  die("SQL error: " . $conn->error);
 }
 
 if (!empty($params)) {
@@ -73,8 +74,8 @@ if ($result->num_rows > 0) {
     echo "<p><strong>Total Seats:</strong> " . $ride['seats'] . "</p>";
     echo "<p><strong>Available Seats:</strong> " . $available_seats . "</p>";
     echo "<p><strong>Driver:</strong> " . htmlspecialchars($ride['driver_name']) . "</p>";
-    echo "<p><strong>Driver Rating:</strong> " .
-         ($ride['driver_rating'] ? "⭐ " . round($ride['driver_rating'], 1) . "/5" : "Not rated yet") .
+    echo "<p><strong>Driver Rating:</strong> " . 
+         ($ride['driver_rating'] ? "⭐ " . round($ride['driver_rating'], 1) . "/5" : "Not rated yet") . 
          "</p>";
 
     echo "<a href='view_driver.php?driver_id=" . $ride['user_id'] . "' class='btn-view'>View Driver Details</a>";

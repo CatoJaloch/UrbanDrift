@@ -1,4 +1,5 @@
-<?php session_start();
+<?php
+session_start();
 include '../includes/db.php';
 include '../includes/navbar.php';
 include '../includes/sidebar.php';
@@ -11,30 +12,37 @@ if (!$ride_id) {
   exit;
 }
 
-// Fetch existing rating (optional)
-$stmt = $conn->prepare("SELECT rating_by_passenger, feedback_by_passenger FROM ride_offers WHERE id = ? AND user_id != ?");
-$stmt->bind_param("ii", $ride_id, $user_id); // Assuming the passenger is not the ride creator
+// Check if this user already rated this ride
+$stmt = $conn->prepare("SELECT id FROM ride_ratings WHERE ride_id = ? AND user_id = ?");
+$stmt->bind_param("ii", $ride_id, $user_id);
 $stmt->execute();
-$result = $stmt->get_result();
-$existing = $result->fetch_assoc();
+$stmt->store_result();
+
+$hasRated = $stmt->num_rows > 0;
 $stmt->close();
 
-// If form submitted
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$hasRated) {
   $rating = intval($_POST['rating']);
   $feedback = trim($_POST['feedback']);
 
-  $stmt = $conn->prepare("
-    UPDATE ride_offers
-    SET rating_by_passenger = ?, feedback_by_passenger = ?
-    WHERE id = ? AND rating_by_passenger IS NULL
-  ");
-  $stmt->bind_param("isi", $rating, $feedback, $ride_id);
-  $stmt->execute();
-  $stmt->close();
+  if ($rating < 1 || $rating > 5) {
+    $error = "Invalid rating selected.";
+  } else {
+    $stmt = $conn->prepare("
+      INSERT INTO ride_ratings (ride_id, user_id, rating, feedback, created_at)
+      VALUES (?, ?, ?, ?, NOW())
+    ");
+    $stmt->bind_param("iiis", $ride_id, $user_id, $rating, $feedback);
 
-  header("Location: my_bookings.php");
-  exit;
+    if ($stmt->execute()) {
+      header("Location: my_bookings.php");
+      exit;
+    } else {
+      $error = "❌ Failed to submit rating.";
+    }
+    $stmt->close();
+  }
 }
 
 ?>
@@ -67,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       border-radius: 6px;
     }
     .rating-form button {
-      background-color:rgb(167, 76, 175);
+      background-color: rgb(167, 76, 175);
       color: white;
       border: none;
       padding: 10px 20px;
@@ -77,6 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .rating-form button:hover {
       background-color: #45a049;
     }
+    .rating-form .message {
+      color: red;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -84,9 +96,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <main class="main-content">
   <div class="rating-form">
     <h2>Rate Your Driver</h2>
+
+    <?php if ($hasRated): ?>
+      <p class="message">⚠️ You have already rated this ride.</p>
+    <?php elseif (!empty($error)): ?>
+      <p class="message"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
+
+    <?php if (!$hasRated): ?>
     <form method="POST">
       <input type="hidden" name="ride_id" value="<?= htmlspecialchars($ride_id) ?>">
-      
+
       <label for="rating">Select Rating:</label>
       <select name="rating" required>
         <option value="">Select...</option>
@@ -100,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <button type="submit">Submit Rating</button>
     </form>
+    <?php endif; ?>
   </div>
 </main>
 

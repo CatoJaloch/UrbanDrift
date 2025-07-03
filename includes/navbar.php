@@ -35,7 +35,7 @@ if ($user_id) {
         <span class="verified-badge"><i class="fas fa-check-circle"></i> Verified</span>
       <?php endif; ?>
     </span>
-    <a href="#" class="nav-link"><i class="fas fa-bell"></i></a>
+    <a href="../includes/notifications.php" class="nav-link"><i class="fas fa-bell"></i></a>
   </div>
 </nav>
 
