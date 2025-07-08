@@ -7,7 +7,7 @@ include '../includes/navbar.php';
 $driver_id = intval($_GET['driver_id'] ?? 0);
 
 // Get driver profile
-$stmt = $conn->prepare("SELECT name, email ,car_model ,license_plate FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT name, email, car_model, license_plate FROM users WHERE id = ?");
 $stmt->bind_param("i", $driver_id);
 $stmt->execute();
 $driver = $stmt->get_result()->fetch_assoc();
@@ -33,20 +33,52 @@ $result = $stmt->get_result();
   <link rel="stylesheet" href="../css/myride.css">
   <style>
     body {
-      background: #f5f5f5;
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
     .main-content {
       margin-left: 220px;
-      padding: 80px 20px 20px;
+      padding: 60px 30px;
+      max-width: 800px;
     }
+
+    h2, h3 {
+      color: #333;
+      border-bottom: 2px solid #ccc;
+      padding-bottom: 5px;
+    }
+
     .profile-box, .ratings-box {
-      background: #fff;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 6px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
     }
-    .ratings-box p {
-      margin: 5px 0;
+
+    .profile-box p, .ratings-box p {
+      margin: 8px 0;
+      font-size: 15px;
+    }
+
+    .ratings-box {
+      border-left: 4px solid #4caf50;
+    }
+
+    .ratings-box p strong {
+      font-weight: 600;
+    }
+
+    .ratings-box p em {
+      color: #555;
+      display: block;
+      margin-top: 5px;
+    }
+
+    .ratings-box p:last-child {
+      font-size: 0.85em;
+      color: #777;
     }
   </style>
 </head>
@@ -57,8 +89,8 @@ $result = $stmt->get_result();
     <div class="profile-box">
       <p><strong>Name:</strong> <?= htmlspecialchars($driver['name']) ?></p>
       <p><strong>Email:</strong> <?= htmlspecialchars($driver['email']) ?></p>
-       <p><strong>model:</strong> <?= htmlspecialchars($driver['car_model']) ?></p>
-        <p><strong>license plate:</strong> <?= htmlspecialchars($driver['license_plate']) ?></p>
+      <p><strong>Car Model:</strong> <?= htmlspecialchars($driver['car_model']) ?></p>
+      <p><strong>License Plate:</strong> <?= htmlspecialchars($driver['license_plate']) ?></p>
     </div>
 
     <h3>Passenger Ratings & Feedback</h3>
@@ -67,16 +99,28 @@ $result = $stmt->get_result();
         <div class="ratings-box">
           <p><strong><?= htmlspecialchars($row['passenger_name']) ?>:</strong> ⭐ <?= $row['rating'] ?>/5</p>
           <p><em><?= htmlspecialchars($row['feedback']) ?></em></p>
-          <p style="font-size: 0.85em; color: gray;"><?= $row['created_at'] ?></p>
+          <p><?= $row['created_at'] ?></p>
         </div>
       <?php endwhile; ?>
     <?php else: ?>
       <p>No ratings yet.</p>
     <?php endif; ?>
-
   <?php else: ?>
     <p>Driver not found.</p>
   <?php endif; ?>
+  <button onclick="history.back()" style="
+  background-color: #3498db;
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 15px;
+">
+  ← Back to Find Rides
+</button>
+
 </main>
 </body>
 </html>
