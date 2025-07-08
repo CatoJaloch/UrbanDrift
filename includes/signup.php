@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
   $password_raw = $_POST['password'];
   $password = password_hash($password_raw, PASSWORD_DEFAULT);
   $estate_id = intval($_POST['estate_id']);
-  $age = date_diff(date_create($dob), date_create('today'))->y;
+  $age = date_diff(date_create($dob), date_create('today'))->y;$age = date_diff(date_create($dob), date_create('today'))->y;
 
   if (empty($name) || empty($email) || empty($password_raw) || empty($house_number) || empty($estate_id) || empty($gender) || empty($dob)) {
     $signup_error = "Please fill in all required fields.";
@@ -35,11 +35,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['signup'])) {
     if ($stmt->num_rows > 0) {
       $signup_error = "Email is already registered.";
     } else {
-      $stmt_insert = $conn->prepare("
-        INSERT INTO users (name, email, password, gender, dob, house_number, estate_id, is_verified, verification_requested_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, 0, NOW())
-      ");
-      $stmt_insert->bind_param("ssssssi", $name, $email, $password, $gender, $dob, $house_number, $estate_id);
+     $stmt_insert = $conn->prepare("
+  INSERT INTO users (name, email, password, gender, dob, age, house_number, estate_id, is_verified, verification_requested_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())
+");
+$stmt_insert->bind_param("ssssssii", $name, $email, $password, $gender, $dob, $age, $house_number, $estate_id);
+
       if ($stmt_insert->execute()) {
         $signup_success = true;
       } else {
@@ -97,7 +98,6 @@ $conn->close();
   <title>UrbanDrift Signup / Login</title>
   <link rel="stylesheet" href="../css/signup.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 </head>
 <body>
 
@@ -117,7 +117,7 @@ $conn->close();
 
         <input type="text" name="name" placeholder="Name" required />
         <input type="email" name="email" placeholder="Email" required />
-        <input type="password" name="password" placeholder="Password" id="password" 
+        <input type="password" name="password" placeholder="Password" id="password"
                title="Min 8 chars, include upper, lower, digit & special char" required />
         <div id="password-hint"></div>
 
@@ -127,8 +127,10 @@ $conn->close();
           <option value="Female">Female</option>
         </select>
 
-<label for="dob">Date of Birth:</label>
-        <input type="date" name="dob" placeholder="Date of Birth"required />
+        <label for="dob">Date of Birth:</label>
+        <input type="date" name="dob" id="dob" placeholder="Date of Birth" required />
+        <div id="age-warning" style="color: red; display: none;">You must be at least 18 years old to register.</div>
+
         <input type="text" name="house_number" placeholder="House Number" required />
 
         <select name="estate_id" required>
@@ -179,7 +181,7 @@ document.getElementById('signIn').onclick = () => container.classList.remove("ri
 const passwordInput = document.getElementById('password');
 const hint = document.getElementById('password-hint');
 
-passwordInput.addEventListener('input', function() {
+passwordInput.addEventListener('input', function () {
   const value = passwordInput.value;
   let messages = [];
 
@@ -189,11 +191,18 @@ passwordInput.addEventListener('input', function() {
   if (!/\d/.test(value)) messages.push("Digit needed");
   if (!/[\W_]/.test(value)) messages.push("Special char needed");
 
-  if (messages.length === 0) {
-    hint.textContent = "";
-  } else {
-    hint.textContent = messages.join(". ") + ".";
-  }
+  hint.textContent = messages.length === 0 ? "" : messages.join(". ") + ".";
+});
+
+document.getElementById('dob').addEventListener('input', function () {
+  const dob = new Date(this.value);
+  const today = new Date();
+  const age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  const isUnderage = m < 0 || (m === 0 && today.getDate() < dob.getDate()) ? age - 1 < 18 : age < 18;
+
+  const warning = document.getElementById('age-warning');
+  warning.style.display = isUnderage ? 'block' : 'none';
 });
 </script>
 

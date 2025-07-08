@@ -63,7 +63,7 @@ $user_result = $stmt->get_result();
         <div class="user-box">
           <p><strong>Name:</strong> <?= htmlspecialchars($row['name']) ?></p>
           <p><strong>Email:</strong> <?= htmlspecialchars($row['email']) ?></p>
-          <p><strong>Age / Gender:</strong> <?= htmlspecialchars($row['age']) ?> / <?= htmlspecialchars($row['gender']) ?></p>
+         <p><strong>Age / Gender:</strong> <?= htmlspecialchars($row['age'] ?? 'N/A') ?> / <?= htmlspecialchars($row['gender'] ?? 'N/A') ?></p>
           <p><strong>Verified:</strong> <?= $row['is_verified'] ? '✅ Yes' : '❌ No' ?></p>
           <form method="POST">
             <input type="hidden" name="deactivate_id" value="<?= $row['id'] ?>">
